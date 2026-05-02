@@ -1,0 +1,17 @@
+name: KillerSword
+version: 1.0.0
+main: com.killersword.KillerSwordPlugin
+api-version: 1.19
+author: Cvngech
+description: Legendary Killer Sword plugin!
+
+commands:
+  killersword:
+    description: Killer Sword command
+    usage: /killersword [give] [player]
+    permission: killersword.give
+
+permissions:
+  killersword.give:
+    description: Killer Sword dene ki permission
+    default: op
