@@ -1,97 +1,55 @@
-packpackage com.killersword;
+package package com.killersword;
 
-import org.bukkit.Color;
-import org.bukkit.Location;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
+import org.bukkit.ChatColor;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerItemHeldEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitRunnable;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
 
-public class KillerSwordListener implements Listener {
+public class KillerSwordCommand implements CommandExecutor {
 
     private final KillerSwordPlugin plugin;
-    private final Set<UUID> activeParticleTask = new HashSet<>();
 
-    public KillerSwordListener(KillerSwordPlugin plugin) {
+    public KillerSwordCommand(KillerSwordPlugin plugin) {
         this.plugin = plugin;
     }
 
-    @EventHandler
-    public void onItemHeld(PlayerItemHeldEvent event) {
-        Player player = event.getPlayer();
-        ItemStack newItem = player.getInventory().getItem(event.getNewSlot());
-        ItemStack oldItem = player.getInventory().getItem(event.getPreviousSlot());
-        if (KillerSwordItem.isKillerSword(newItem)) {
-            applyKillerEffects(player);
-        }
-        if (KillerSwordItem.isKillerSword(oldItem)) {
-            removeKillerEffects(player);
-        }
-    }
-
-    @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent event) {
-        Player player = event.getPlayer();
-        ItemStack heldItem = player.getInventory().getItemInMainHand();
-        if (KillerSwordItem.isKillerSword(heldItem)) {
-            applyKillerEffects(player);
-        }
-    }
-
-    private void applyKillerEffects(Player player) {
-        player.addPotionEffect(new PotionEffect(
-            PotionEffectType.INCREASE_DAMAGE, 99999, 1, false, true, true
-        ));
-        player.playSound(player.getLocation(), Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 0.5f, 1.5f);
-        startParticles(player);
-        player.sendMessage(org.bukkit.ChatColor.AQUA + "" + org.bukkit.ChatColor.BOLD + "Killer Sword equipped! " + org.bukkit.ChatColor.GRAY + "Strength II active!");
-    }
-
-    private void removeKillerEffects(Player player) {
-        player.removePotionEffect(PotionEffectType.INCREASE_DAMAGE);
-        activeParticleTask.remove(player.getUniqueId());
-        player.sendMessage(org.bukkit.ChatColor.RED + "Killer Sword unequipped. Strength removed.");
-    }
-
-    private void startParticles(Player player) {
-        UUID uuid = player.getUniqueId();
-        activeParticleTask.add(uuid);
-        new BukkitRunnable() {
-            int tick = 0;
-            @Override
-            public void run() {
-                if (!player.isOnline() || !activeParticleTask.contains(uuid)) {
-                    this.cancel();
-                    return;
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (args.length == 0 || args[0].equalsIgnoreCase("give")) {
+            Player target = null;
+            if (args.length >= 2) {
+                target = plugin.getServer().getPlayer(args[1]);
+                if (target == null) {
+                    sender.sendMessage(ChatColor.RED + "Player nahi mila!");
+                    return true;
                 }
-                ItemStack heldItem = player.getInventory().getItemInMainHand();
-                if (!KillerSwordItem.isKillerSword(heldItem)) {
-                    activeParticleTask.remove(uuid);
-                    this.cancel();
-                    return;
-                }
-                Location loc = player.getLocation().add(0, 1, 0);
-                double angle = tick * 0.3;
-                double radius = 0.8;
-                double x = Math.cos(angle) * radius;
-                double z = Math.sin(angle) * radius;
-                loc.getWorld().spawnParticle(Particle.REDSTONE, loc.clone().add(x, 0, z), 1, 0, 0, 0, 0, new Particle.DustOptions(Color.fromRGB(0, 150, 255), 1.2f));
-                loc.getWorld().spawnParticle(Particle.REDSTONE, loc.clone().add(-x, 0.3, -z), 1, 0, 0, 0, 0, new Particle.DustOptions(Color.fromRGB(0, 80, 255), 1.0f));
-                if (tick % 20 == 0) {
-                    loc.getWorld().spawnParticle(Particle.WATER_SPLASH, loc, 10, 0.5, 0.5, 0.5, 0.1);
-                }
-                tick++;
+            } else if (sender instanceof Player) {
+                target = (Player) sender;
+            } else {
+                sender.sendMessage(ChatColor.RED + "Player ka naam do!");
+                return true;
             }
-        }.runTaskTimer(plugin, 0L, 2L);
+            if (!sender.hasPermission("killersword.give")) {
+                sender.sendMessage(ChatColor.RED + "Permission nahi hai!");
+                return true;
+            }
+            ItemStack sword = KillerSwordItem.create();
+            target.getInventory().addItem(sword);
+            target.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "Killer Sword mila!");
+            if (sender != target) {
+                sender.sendMessage(ChatColor.GREEN + "Killer Sword diya: " + target.getName());
+            }
+            return true;
+        }
+        if (args[0].equalsIgnoreCase("help")) {
+            sender.sendMessage(ChatColor.AQUA + "=== Killer Sword ===");
+            sender.sendMessage(ChatColor.YELLOW + "/killersword give" + ChatColor.GRAY + " - Sword lo");
+            sender.sendMessage(ChatColor.YELLOW + "/killersword give <player>" + ChatColor.GRAY + " - Kisi ko do");
+            return true;
+        }
+        sender.sendMessage(ChatColor.RED + "Galat command!");
+        return true;
     }
 }￼Enter
