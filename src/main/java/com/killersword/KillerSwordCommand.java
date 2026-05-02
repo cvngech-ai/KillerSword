@@ -61,4 +61,4 @@ public class KillerSwordCommand implements CommandExecutor {
         sender.sendMessage(ChatColor.RED + "Galat command. /killersword help dekho.");
         return true;
     }
-}￼Enter
+ }
