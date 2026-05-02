@@ -1,4 +1,4 @@
-package package com.killersword;
+package com.killersword;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -52,4 +52,4 @@ public class KillerSwordCommand implements CommandExecutor {
         sender.sendMessage(ChatColor.RED + "Galat command!");
         return true;
     }
-}￼Enter
+}    
